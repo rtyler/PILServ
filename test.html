@@ -1,0 +1,77 @@
+<html>
+    <head>
+        <title>PILServ Test Page</title>
+    </head>
+    <body>
+        For this magic trick, I'll be using my friend Jason.
+        <br/></br/>
+        <table border="0">
+            <tr>
+                <td align="center">
+                    <img height="200" src="http://a1.twimg.com/profile_images/228822586/me.jpg"/>
+                </td>
+                <td align="center">
+                    <img height="200" src="http://localhost:8080/mirror/http://a1.twimg.com/profile_images/228822586/me.jpg"/>
+                </td>
+                <td align="center">
+                    <img height="200" src="http://localhost:8080/flip/filter(blur)/http://a1.twimg.com/profile_images/228822586/me.jpg"/>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <strong>Raw Image</strong>
+                </td>
+                <td align="center">
+                    <strong>/mirror/</strong>
+                </td>
+                <td align="center">
+                    <strong>/flip/filter(blur)/</strong>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <img height="200" src="http://localhost:8080/invert/http://a1.twimg.com/profile_images/228822586/me.jpg"/>
+                </td>
+                <td align="center">
+                    <img height="200" src="http://localhost:8080/invert/mirror/http://a1.twimg.com/profile_images/228822586/me.jpg"/>
+                </td>
+                <td align="center">
+                    <img height="200" src="http://localhost:8080/invert/mirror/flip/http://a1.twimg.com/profile_images/228822586/me.jpg"/>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <strong>/invert/</strong>
+                </td>
+                <td align="center">
+                    <strong>/invert/mirror/</strong>
+                </td>
+                <td align="center">
+                    <strong>/invert/mirror/flip/</strong>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <img src="http://localhost:8080/resize(100x100)/http://a1.twimg.com/profile_images/228822586/me.jpg"/>
+                </td>
+                <td align="center">
+                    <img src="http://localhost:8080/resize(100x100)/rotate(45)/filter(contour)/http://a1.twimg.com/profile_images/228822586/me.jpg"/>
+                </td>
+                <td align="center">
+                    <img src="http://localhost:8080/resize(100x100)/rotate(45)/flip/http://a1.twimg.com/profile_images/228822586/me.jpg"/>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <strong>/resize(100x100)/</strong>
+                </td>
+                <td align="center">
+                    <strong>/resize(100x100)/rotate(45)/filter(contour)/</strong>
+                </td>
+                <td align="center">
+                    <strong>/resize(100x100)/rotate(45)/flip/</strong>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
