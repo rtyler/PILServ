@@ -3,6 +3,7 @@
 import Image
 import ImageFilter
 import ImageOps
+import logging
 import sys
 
 from StringIO import StringIO
@@ -14,6 +15,7 @@ class BaseTransform(object):
     command = None
     def execute(self, infile, args, **kwargs):
         args = self.parsePositionals(args)
+        logging.debug('Calling %s.execute(%s)' % (self.__class__.__name__, ', '.join(args)))
         return self._execute(infile, *args, **kwargs)
 
     def parsePositionals(self, rawbuf):
@@ -27,10 +29,10 @@ class Resize(BaseTransform):
         if not size:
             size = (64, 64)
         else:
-            size = tuple(size.split('x'))
+            size = tuple((int(s) for s in size.split('x')))
         outfile = StringIO()
         im = Image.open(infile)
-        im.thumbnail(size)
+        im = im.resize(size)
         im.save(outfile, 'png')
         return outfile.getvalue()
 
