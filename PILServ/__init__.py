@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import logging
+import os
 import re
 
 from StringIO import StringIO
@@ -10,6 +12,8 @@ from eventlet.green import BaseHTTPServer
 from PILServ import fetch
 from PILServ import transforms
 
+if os.getenv('DEBUG'):
+    logging.basicConfig(level=logging.DEBUG) 
 
 class PILHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     nongreedy = '.*?' 
