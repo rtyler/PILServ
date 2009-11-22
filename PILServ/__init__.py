@@ -35,7 +35,7 @@ class PILHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         image = fetch.fetchBuffer(image)
 
         # Chain commands together
-        for command in reversed(commands):
+        for command in commands:
             if not command:
                 continue
             args = self.arguments_regex.search(command)
