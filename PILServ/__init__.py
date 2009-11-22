@@ -1,80 +1,15 @@
 #!/usr/bin/env python
 
-import Image
-import os
 import re
-import pdb
-import sys
-import time
 
 from StringIO import StringIO
 
 from eventlet import api
-from eventlet.green import urllib2
 from eventlet.green import BaseHTTPServer
 
-class TransformException(Exception):
-    pass
+from PILServ import fetch
+from PILServ import transforms
 
-class BaseTransform(object):
-    command = None
-    @classmethod
-    def execute(cls, path, out):
-        raise TransformException('Subclasses of BaseTransform must override execute()')
-
-    @classmethod
-    def parsePositionals(cls, rawbuf):
-        if not rawbuf:
-            return []
-        return [p.strip() for p in rawbuf[1:-1].split(',')]
-
-class Resize(BaseTransform):
-    command = 'resize'
-    @classmethod
-    def execute(cls, infile, args, **kwargs):
-        args = cls.parsePositionals(args)
-        return cls._execute(infile, *args, **kwargs)
-
-    @classmethod
-    def _execute(cls, infile, size, **kwargs):
-        if not size:
-            size = (64, 64)
-        else:
-            size = tuple(size.split('x'))
-        outfile = StringIO()
-        im = Image.open(infile)
-        im.thumbnail(size)
-        im.save(outfile, 'png')
-        return outfile.getvalue()
-
-class Flip(BaseTransform):
-    command = 'flip'
-    @classmethod
-    def execute(cls, infile, args, **kwargs):
-        args = cls.parsePositionals(args)
-        return cls._execute(infile, *args, **kwargs)
-
-    @classmethod
-    def _execute(cls, infile, *args, **kwargs):
-        outfile = StringIO()
-        im = Image.open(infile)
-        im = im.rotate(180, expand=True)
-        im.save(outfile, 'png')
-        return outfile.getvalue()
-
-def __aggregate():
-    module = sys.modules[__name__]
-    for name in dir(module):
-        attr = getattr(module, name)
-        if not isinstance(attr, type):
-            continue
-        if not issubclass(attr, BaseTransform):
-            continue
-        if attr == BaseTransform:
-            continue
-        yield attr
-
-transform_commands = dict(((t.command, t) for t in __aggregate()))
 
 class PILHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     nongreedy = '.*?' 
@@ -87,16 +22,17 @@ class PILHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print ('do_GET', self.__dict__)
         m = self.url_regex.search(self.path)
         if not m:
+            # No URL parsed out!
             return # XXX: Error condition
+
         image = m.group(1)
 
+        # Grab the precending commands from the URL
         rest = self.path[:-(len(image))]
         commands = rest.split('/')
 
-        # Fetch image 
-        fd = urllib2.urlopen(image)
-        image = fd.read()
-        fd.close()
+        # Fetch a string buffer representing the image
+        image = fetch.fetchBuffer(image)
 
         # Chain commands together
         for command in reversed(commands):
@@ -105,9 +41,11 @@ class PILHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             args = self.arguments_regex.search(command)
             if args:
                 args = args.group(1)
+                # `command` is formatted like "resize(32x32)" here, 
+                # strip off the latter bits
                 command = command[:-(len(args))]
-            command = transform_commands.get(command)
 
+            command = transforms.commands.get(command)
             if not command:
                 continue
 
@@ -129,7 +67,4 @@ def main():
     except:
         return -1
     return 0
-
-if __name__ == '__main__':
-    sys.exit(main())
 
