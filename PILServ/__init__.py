@@ -53,7 +53,7 @@ class PILHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if not command:
                 continue
 
-            image = command.execute(StringIO(image), args)
+            image = command().execute(StringIO(image), args)
 
         self.send_response(200)
         self.send_header('Content-Type', 'image/png')

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import Image
+import ImageFilter
+import ImageOps
 import sys
 
 from StringIO import StringIO
@@ -10,21 +12,18 @@ class TransformException(Exception):
 
 class BaseTransform(object):
     command = None
-    @classmethod
-    def execute(cls, infile, args, **kwargs):
-        args = cls.parsePositionals(args)
-        return cls._execute(infile, *args, **kwargs)
+    def execute(self, infile, args, **kwargs):
+        args = self.parsePositionals(args)
+        return self._execute(infile, *args, **kwargs)
 
-    @classmethod
-    def parsePositionals(cls, rawbuf):
+    def parsePositionals(self, rawbuf):
         if not rawbuf:
             return []
         return [p.strip() for p in rawbuf[1:-1].split(',')]
 
 class Resize(BaseTransform):
     command = 'resize'
-    @classmethod
-    def _execute(cls, infile, size, **kwargs):
+    def _execute(self, infile, size, **kwargs):
         if not size:
             size = (64, 64)
         else:
@@ -35,11 +34,9 @@ class Resize(BaseTransform):
         im.save(outfile, 'png')
         return outfile.getvalue()
 
-
 class Rotate(BaseTransform):
     command = 'rotate'
-    @classmethod
-    def _execute(cls, infile, angle, **kwargs):
+    def _execute(self, infile, angle, **kwargs):
         outfile = StringIO()
         im = Image.open(infile)
         im = im.rotate(float(angle), expand=True)
@@ -48,10 +45,44 @@ class Rotate(BaseTransform):
 
 class Flip(Rotate):
     command = 'flip'
-    @classmethod
-    def _execute(cls, infile, *args, **kwargs):
-        return Rotate._execute(infile, 180, **kwargs)
+    def _execute(self, infile, *args, **kwargs):
+        return super(Flip, self)._execute(infile, 180, **kwargs)
 
+class Filter(BaseTransform):
+    command = 'filter'
+    def _execute(self, infile, _filter, **kwargs):
+        outfile = StringIO()
+        im = Image.open(infile)
+
+        _filter = _filter.upper()
+        if hasattr(ImageFilter, _filter):
+            im = im.filter(getattr(ImageFilter, _filter))
+        im.save(outfile, 'png')
+        return outfile.getvalue()
+
+class ImageOpsTransform(BaseTransform):
+    def _execute(self, infile, *args, **kwargs):
+        outfile = StringIO()
+        im = Image.open(infile)
+        im = im.convert('RGB')
+        im = self.operation(im)
+        im.save(outfile, 'png')
+        return outfile.getvalue()
+
+class Invert(ImageOpsTransform):
+    command = 'invert'
+    def operation(self, img):
+        return ImageOps.invert(img)
+
+class Grayscale(ImageOpsTransform):
+    command = 'grayscale'
+    def operation(self, img):
+        return ImageOps.grayscale(img)
+
+class Mirror(ImageOpsTransform):
+    command = 'mirror'
+    def operation(self, img):
+        return ImageOps.mirror(img)
 
 def __aggregate():
     module = sys.modules[__name__]
